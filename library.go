@@ -20,6 +20,15 @@ func (l library) WriteJSON(w io.Writer) {
 	w.Write(b)
 }
 
-//func NewLibraryFromCSV(r io.Reader) library {
-//csvBook, _ := csv.NewReader(r).Read()
-//}
+func NewLibraryFromCSV(r io.Reader) library {
+	csvReader := csv.NewReader(r)
+	var lib library
+	for {
+		bookSlice, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		lib = append(lib, NewBookFromStringSlice(bookSlice))
+	}
+	return lib
+}

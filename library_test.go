@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -39,16 +40,16 @@ func TestWriteJSON(t *testing.T) {
 	}
 }
 
-//func TestReadCSV(t *testing.T) {
-//var lib library
-//csv := "Wuthering Heights,Emily Bronte,1847,Thomas Cautley Newbury,1,Kate Bush\nTess of the d'Urbervilles,Thomas Hardy,1892,James R. Osgood,1,\"Wessex,19th Century\"\n"
-//r := strings.NewReader(csv)
+func TestReadCSV(t *testing.T) {
+	var lib library
+	csv := "Wuthering Heights,Emily Bronte,1847,Thomas Cautley Newbury,1,Kate Bush\nTess of the d'Urbervilles,Thomas Hardy,1892,James R. Osgood,1,\"Wessex,19th Century\"\n"
+	r := strings.NewReader(csv)
 
-//lib = NewLibraryFromCSV(r)
-//if lib[0].Author != "Emily Bronte" {
-//t.Errorf("Expected Emily Bronte, but got %v", lib[0].Author)
-//}
-//}
+	lib = NewLibraryFromCSV(r)
+	if lib[0].Author != "Emily Bronte" {
+		t.Errorf("Expected Emily Bronte, but got %v", lib[0].Author)
+	}
+}
 
 func makeTestLibrary() library {
 
