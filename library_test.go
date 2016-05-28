@@ -26,6 +26,19 @@ func TestWriteCSV(t *testing.T) {
 	}
 }
 
+func TestWriteJSON(t *testing.T) {
+	var testLibrary = makeTestLibrary()
+	var out = new(bytes.Buffer)
+	testLibrary.WriteJSON(out)
+
+	result := out.String()
+	expected := `[{"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1, "Keywords":["Kate Bush"]}]`
+
+	if result != expected {
+		t.Error("Expected", expected, "but got", result)
+	}
+}
+
 func makeTestLibrary() library {
 
 	var testBooks = []book{
