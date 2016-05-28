@@ -1,9 +1,34 @@
 package main
 
-import "testing"
+import (
+	"bytes"
+	"testing"
+)
 
 func TestLibrary(t *testing.T) {
-	b := []book{
+	var testLibrary = makeTestLibrary()
+
+	if testLibrary[0].PublicationDate != 1847 {
+		t.Error("Expected 1847, but got", testLibrary[0].PublicationDate)
+	}
+}
+
+func TestWriteCSV(t *testing.T) {
+	var testLibrary = makeTestLibrary()
+	var out = new(bytes.Buffer)
+	testLibrary.WriteCSV(out)
+
+	result := out.String()
+	expected := "Wuthering Heights,Emily Bronte,1847,Thomas Cautley Newbury,1,Kate Bush\nTess of the d'Urbervilles,Thomas Hardy,1892,James R. Osgood,1,\"Wessex,19th Century\"\n"
+
+	if result != expected {
+		t.Error("Expected", expected, "but got", result)
+	}
+}
+
+func makeTestLibrary() library {
+
+	var testBooks = []book{
 		book{
 			"Wuthering Heights",
 			"Emily Bronte",
@@ -18,12 +43,11 @@ func TestLibrary(t *testing.T) {
 			1892,
 			"James R. Osgood",
 			1,
-			[]string{"Women making poor life choices"},
+			[]string{"Wessex", "19th Century"},
 		},
 	}
-	lib := library(b)
 
-	if lib[0].PublicationDate != 1847 {
-		t.Error("Expected 1847, but got", lib[0].PublicationDate)
-	}
+	var testLibrary = library(testBooks)
+
+	return testLibrary
 }
