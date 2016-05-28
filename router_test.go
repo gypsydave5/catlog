@@ -18,3 +18,4 @@ func TestHelloRouter(t *testing.T) {
 		t.Error("Expected a 200 but i got", response.StatusCode)
 	}
 }
+
