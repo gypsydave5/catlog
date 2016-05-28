@@ -32,12 +32,23 @@ func TestWriteJSON(t *testing.T) {
 	testLibrary.WriteJSON(out)
 
 	result := out.String()
-	expected := `[{"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1, "Keywords":["Kate Bush"]}]`
+	expected := `[{"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]}]`
 
 	if result != expected {
 		t.Error("Expected", expected, "but got", result)
 	}
 }
+
+//func TestReadCSV(t *testing.T) {
+//var lib library
+//csv := "Wuthering Heights,Emily Bronte,1847,Thomas Cautley Newbury,1,Kate Bush\nTess of the d'Urbervilles,Thomas Hardy,1892,James R. Osgood,1,\"Wessex,19th Century\"\n"
+//r := strings.NewReader(csv)
+
+//lib = NewLibraryFromCSV(r)
+//if lib[0].Author != "Emily Bronte" {
+//t.Errorf("Expected Emily Bronte, but got %v", lib[0].Author)
+//}
+//}
 
 func makeTestLibrary() library {
 

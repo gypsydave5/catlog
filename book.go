@@ -22,3 +22,13 @@ func (b *book) ToStringSlice() []string {
 	result[5] = strings.Join(b.Keywords, ",")
 	return result
 }
+
+func NewBookFromStringSlice(ss []string) (b book) {
+	b.Title = ss[0]
+	b.Author = ss[1]
+	b.PublicationDate, _ = strconv.Atoi(ss[2])
+	b.Publisher = ss[3]
+	b.Edition, _ = strconv.Atoi(ss[4])
+	b.Keywords = strings.Split(ss[5], ",")
+	return
+}

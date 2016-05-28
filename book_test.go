@@ -29,3 +29,26 @@ func TestBookToStringSlice(t *testing.T) {
 		t.Error("Expected 19th Century,Ghost, but got", record[5])
 	}
 }
+
+func TestStringSliceToBook(t *testing.T) {
+	var b book
+	stringSliceBook := []string{
+		"The Shockwave Rider",
+		"John Brunner",
+		"1975",
+		"Harper & Row",
+		"1",
+		"Science Fiction,Cyberpunk",
+	}
+
+	b = NewBookFromStringSlice(stringSliceBook)
+
+	if b.Author != "John Brunner" {
+		t.Error("Expected John Brunner, but got", b.Author)
+	}
+
+	if b.Keywords[1] != "Cyberpunk" {
+		t.Error("Expected Cyberpunk, but got", b.Keywords[1])
+	}
+
+}
