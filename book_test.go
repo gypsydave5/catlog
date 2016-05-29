@@ -3,6 +3,7 @@ package main
 import "testing"
 
 var b = book{
+	ID:              1,
 	Title:           "Northanger Abbey",
 	Author:          "Jane Austen",
 	PublicationDate: 1817,
@@ -19,14 +20,14 @@ func TestBookProperties(t *testing.T) {
 
 func TestBookToStringSlice(t *testing.T) {
 	record := b.ToStringSlice()
-	if record[3] != "John Murray" {
-		t.Error("Expected John Murray, but got", record[3])
+	if record[4] != "John Murray" {
+		t.Error("Expected John Murray, but got", record[4])
 	}
-	if record[4] != "1" {
+	if record[5] != "1" {
 		t.Error("Expected 1, but got", record[4])
 	}
-	if record[5] != "19th Century,Ghost" {
-		t.Error("Expected 19th Century,Ghost, but got", record[5])
+	if record[6] != "19th Century,Ghost" {
+		t.Error("Expected 19th Century,Ghost, but got", record[6])
 	}
 }
 
@@ -41,7 +42,7 @@ func TestStringSliceToBook(t *testing.T) {
 		"Science Fiction,Cyberpunk",
 	}
 
-	b = NewBookFromStringSlice(stringSliceBook)
+	b = newBookFromStringSlice(stringSliceBook)
 
 	if b.Author != "John Brunner" {
 		t.Error("Expected John Brunner, but got", b.Author)

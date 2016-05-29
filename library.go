@@ -9,9 +9,11 @@ type library []book
 
 func (l library) WriteCSV(w io.Writer) {
 	csvWriter := csv.NewWriter(w)
+
 	for _, book := range l {
 		csvWriter.Write(book.ToStringSlice())
 	}
+
 	csvWriter.Flush()
 }
 
@@ -20,15 +22,25 @@ func (l library) WriteJSON(w io.Writer) {
 	w.Write(b)
 }
 
-func NewLibraryFromCSV(r io.Reader) library {
-	csvReader := csv.NewReader(r)
+// NewLibraryFromCSV returns a new library by reading in a CSV file. Each row
+// represents a book. Column order is as follows:
+//   Title
+//   Author
+//   PublicationDate
+//   Publisher
+//   Edition
+//   Tags
+func newLibraryFromCSV(r io.Reader) library {
 	var lib library
+	csvReader := csv.NewReader(r)
+
 	for {
 		bookSlice, err := csvReader.Read()
 		if err == io.EOF {
 			break
 		}
-		lib = append(lib, NewBookFromStringSlice(bookSlice))
+		lib = append(lib, newBookFromStringSlice(bookSlice))
 	}
+
 	return lib
 }

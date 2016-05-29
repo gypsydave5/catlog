@@ -20,7 +20,7 @@ func TestWriteCSV(t *testing.T) {
 	testLibrary.WriteCSV(out)
 
 	result := out.String()
-	expected := "Wuthering Heights,Emily Bronte,1847,Thomas Cautley Newbury,1,Kate Bush\nTess of the d'Urbervilles,Thomas Hardy,1892,James R. Osgood,1,\"Wessex,19th Century\"\n"
+	expected := "1,Wuthering Heights,Emily Bronte,1847,Thomas Cautley Newbury,1,Kate Bush\n2,Tess of the d'Urbervilles,Thomas Hardy,1892,James R. Osgood,1,\"Wessex,19th Century\"\n"
 
 	if result != expected {
 		t.Error("Expected", expected, "but got", result)
@@ -33,7 +33,7 @@ func TestWriteJSON(t *testing.T) {
 	testLibrary.WriteJSON(out)
 
 	result := out.String()
-	expected := `[{"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]}]`
+	expected := `[{"ID":1,"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"ID":2,"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]}]`
 
 	if result != expected {
 		t.Error("Expected", expected, "but got", result)
@@ -45,7 +45,7 @@ func TestReadCSV(t *testing.T) {
 	csv := "Wuthering Heights,Emily Bronte,1847,Thomas Cautley Newbury,1,Kate Bush\nTess of the d'Urbervilles,Thomas Hardy,1892,James R. Osgood,1,\"Wessex,19th Century\"\n"
 	r := strings.NewReader(csv)
 
-	lib = NewLibraryFromCSV(r)
+	lib = newLibraryFromCSV(r)
 	if lib[0].Author != "Emily Bronte" {
 		t.Errorf("Expected Emily Bronte, but got %v", lib[0].Author)
 	}
@@ -55,6 +55,7 @@ func makeTestLibrary() library {
 
 	var testBooks = []book{
 		book{
+			1,
 			"Wuthering Heights",
 			"Emily Bronte",
 			1847,
@@ -63,6 +64,7 @@ func makeTestLibrary() library {
 			[]string{"Kate Bush"},
 		},
 		book{
+			2,
 			"Tess of the d'Urbervilles",
 			"Thomas Hardy",
 			1892,

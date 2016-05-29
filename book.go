@@ -4,6 +4,7 @@ import "strings"
 import "strconv"
 
 type book struct {
+	ID              int
 	Title           string
 	Author          string
 	PublicationDate int
@@ -13,17 +14,18 @@ type book struct {
 }
 
 func (b *book) ToStringSlice() []string {
-	result := make([]string, 6)
-	result[0] = b.Title
-	result[1] = b.Author
-	result[2] = strconv.Itoa(b.PublicationDate)
-	result[3] = b.Publisher
-	result[4] = strconv.Itoa(b.Edition)
-	result[5] = strings.Join(b.Keywords, ",")
+	result := make([]string, 7)
+	result[0] = strconv.Itoa(b.ID)
+	result[1] = b.Title
+	result[2] = b.Author
+	result[3] = strconv.Itoa(b.PublicationDate)
+	result[4] = b.Publisher
+	result[5] = strconv.Itoa(b.Edition)
+	result[6] = strings.Join(b.Keywords, ",")
 	return result
 }
 
-func NewBookFromStringSlice(ss []string) (b book) {
+func newBookFromStringSlice(ss []string) (b book) {
 	b.Title = ss[0]
 	b.Author = ss[1]
 	b.PublicationDate, _ = strconv.Atoi(ss[2])
