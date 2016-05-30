@@ -17,6 +17,31 @@ func TestFileCatalogue(t *testing.T) {
 	TearDownFileCatalogue(t)
 }
 
+func TestAddToCatalogue(t *testing.T) {
+	SetUpFileCatalogue(t)
+	cat := newJSONCatalogue("test_catalogue.json")
+	bk := book{
+		Title:           "Dune",
+		Author:          "Frank Herbert",
+		PublicationDate: 1965,
+		Publisher:       "Chilton Books",
+		Edition:         1,
+		Keywords:        []string{"Desert", "Science Fiction"},
+	}
+
+	cat.CreateBook(bk)
+	book := cat.FetchBookByTitle("Dune")
+
+	if book.Author != "Frank Herbert" {
+		t.Error("Expected Frank Herbert, got", book.Author)
+	}
+	if book.ID != 3 {
+		t.Error("Expected 3, got", book.ID)
+	}
+
+	TearDownFileCatalogue(t)
+}
+
 func SetUpFileCatalogue(t *testing.T) {
 	file, err := os.Create("test_catalogue.json")
 	if err != nil {
