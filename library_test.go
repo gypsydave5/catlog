@@ -51,6 +51,17 @@ func TestReadCSV(t *testing.T) {
 	}
 }
 
+func TestReadJSON(t *testing.T) {
+	var lib library
+	json := `[{"ID":1,"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"ID":2,"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]}]`
+	r := strings.NewReader(json)
+
+	lib, _ = newLibraryFromJSON(r)
+	if lib[0].Author != "Emily Bronte" {
+		t.Errorf("Expected Emily Bronte, but got %v", lib[0].Author)
+	}
+}
+
 func makeTestLibrary() library {
 
 	var testBooks = []book{

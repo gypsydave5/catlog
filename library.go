@@ -1,8 +1,12 @@
 package main
 
-import "io"
+import (
+	"encoding/csv"
+	"fmt"
+	"io"
+	"io/ioutil"
+)
 
-import "encoding/csv"
 import "encoding/json"
 
 type library []book
@@ -22,14 +26,6 @@ func (l library) WriteJSON(w io.Writer) {
 	w.Write(b)
 }
 
-// NewLibraryFromCSV returns a new library by reading in a CSV file. Each row
-// represents a book. Column order is as follows:
-//   Title
-//   Author
-//   PublicationDate
-//   Publisher
-//   Edition
-//   Tags
 func newLibraryFromCSV(r io.Reader) library {
 	var lib library
 	csvReader := csv.NewReader(r)
@@ -43,4 +39,15 @@ func newLibraryFromCSV(r io.Reader) library {
 	}
 
 	return lib
+}
+
+func newLibraryFromJSON(r io.Reader) (library, error) {
+	var lib library
+	b, _ := ioutil.ReadAll(r)
+	err := json.Unmarshal(b, &lib)
+	if err != nil {
+		err := fmt.Errorf("Error reading catalogue: %v", err)
+		return library{}, err
+	}
+	return lib, nil
 }
