@@ -54,6 +54,7 @@ func (cat *fileCatalogue) CreateBook(b book) {
 	b.ID = cat.nextID
 	cat.nextID++
 	cat.library = append(cat.library, b)
+	cat.library.WriteJSON(cat.catalogueWriter)
 }
 
 func (cat *fileCatalogue) DeleteBookWithID(id int) {

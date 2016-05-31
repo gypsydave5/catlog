@@ -14,6 +14,16 @@ func TestFileCatalogue(t *testing.T) {
 	}
 }
 
+func TestFetchBookByTitle(t *testing.T) {
+	testCatalogueBuffer := newTestCatalogue()
+	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
+	book := cat.FetchBookByTitle("Tess of the d'Urbervilles")
+
+	if book.ID != 2 {
+		t.Error("Expected 1, got", book.ID)
+	}
+}
+
 func TestAddToCatalogue(t *testing.T) {
 	testCatalogueBuffer := newTestCatalogue()
 	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
@@ -27,13 +37,21 @@ func TestAddToCatalogue(t *testing.T) {
 	}
 
 	cat.CreateBook(bk)
-	book := cat.FetchBookByTitle("Dune")
 
-	if book.Author != "Frank Herbert" {
-		t.Error("Expected Frank Herbert, got", book.Author)
+	dune, err := cat.FetchBookByID(3)
+
+	if err != nil {
+		t.Error("Error reading 'Dune' from catalogue")
 	}
-	if book.ID != 3 {
-		t.Error("Expected 3, got", book.ID)
+
+	if dune.Title != "Dune" {
+		t.Error("Expected the title of 'Dune' to be 'Dune', but instead it was", dune.Title)
+	}
+
+	expectedBuffer := `[{"ID":1,"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"ID":2,"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]},{"ID":3,"Title":"Dune","Author":"Frank Herbert","PublicationDate":1965,"Publisher":"Chilton Books","Edition":1,"Keywords":["Desert","Science Fiction"]}]`
+
+	if testCatalogueBuffer.String() != expectedBuffer {
+		t.Error("'Dune' was not written to the catalogue buffer")
 	}
 }
 
