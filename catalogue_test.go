@@ -5,6 +5,17 @@ import (
 	"testing"
 )
 
+var (
+	dune = book{
+		Title:           "Dune",
+		Author:          "Frank Herbert",
+		PublicationDate: 1965,
+		Publisher:       "Chilton Books",
+		Edition:         1,
+		Keywords:        []string{"Desert", "Science Fiction"},
+	}
+)
+
 func TestFileCatalogue(t *testing.T) {
 	cat := newTestCatalogue()
 	book, _ := cat.FetchBookByID(1)
@@ -40,24 +51,16 @@ func TestFetchBookByIDError(t *testing.T) {
 func TestAddToCatalogue(t *testing.T) {
 	testCatalogueBuffer := newTestCatalogueBuffer()
 	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
-	bk := book{
-		Title:           "Dune",
-		Author:          "Frank Herbert",
-		PublicationDate: 1965,
-		Publisher:       "Chilton Books",
-		Edition:         1,
-		Keywords:        []string{"Desert", "Science Fiction"},
-	}
 
-	cat.CreateBook(bk)
+	cat.CreateBook(dune)
 
-	dune, err := cat.FetchBookByID(3)
+	book, err := cat.FetchBookByID(3)
 
 	if err != nil {
 		t.Error("Error reading 'Dune' from catalogue")
 	}
 
-	if dune.Title != "Dune" {
+	if book.Title != "Dune" {
 		t.Error("Expected the title of 'Dune' to be 'Dune', but instead it was", dune.Title)
 	}
 

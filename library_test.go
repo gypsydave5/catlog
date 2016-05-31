@@ -66,22 +66,22 @@ func makeTestLibrary() library {
 
 	var testBooks = []book{
 		book{
-			1,
-			"Wuthering Heights",
-			"Emily Bronte",
-			1847,
-			"Thomas Cautley Newbury",
-			1,
-			[]string{"Kate Bush"},
+			ID:              1,
+			Title:           "Wuthering Heights",
+			Author:          "Emily Bronte",
+			PublicationDate: 1847,
+			Publisher:       "Thomas Cautley Newbury",
+			Edition:         1,
+			Keywords:        []string{"Kate Bush"},
 		},
 		book{
-			2,
-			"Tess of the d'Urbervilles",
-			"Thomas Hardy",
-			1892,
-			"James R. Osgood",
-			1,
-			[]string{"Wessex", "19th Century"},
+			ID:              2,
+			Title:           "Tess of the d'Urbervilles",
+			Author:          "Thomas Hardy",
+			PublicationDate: 1892,
+			Publisher:       "James R. Osgood",
+			Edition:         1,
+			Keywords:        []string{"Wessex", "19th Century"},
 		},
 	}
 
