@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"os"
+	"io"
 )
 
 var (
@@ -10,9 +10,10 @@ var (
 )
 
 type catalogue struct {
-	library  library
-	filename string
-	nextID   int
+	library         library
+	catalogueReader io.Reader
+	catalogueWriter io.Writer
+	nextID          int
 }
 
 func (cat *catalogue) FetchBookByID(id int) (book, error) {
@@ -55,13 +56,13 @@ func (cat *catalogue) DeleteBookWithID(id int) {
 	}
 }
 
-func newJSONCatalogue(filename string) catalogue {
-	catFile, _ := os.Open(filename)
-	lib, _ := newLibraryFromJSON(catFile)
+func newJSONCatalogue(catReader io.Reader, catWriter io.Writer) catalogue {
+	lib, _ := newLibraryFromJSON(catReader)
 	nextID := lib[len(lib)-1].ID + 1
 	return catalogue{
 		lib,
-		filename,
+		catReader,
+		catWriter,
 		nextID,
 	}
 }
