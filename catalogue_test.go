@@ -6,26 +6,39 @@ import (
 )
 
 func TestFileCatalogue(t *testing.T) {
-	testCatalogueBuffer := newTestCatalogue()
-	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
+	cat := newTestCatalogue()
 	book, _ := cat.FetchBookByID(1)
 	if book.Title != "Wuthering Heights" {
 		t.Error("Expected Wuthering Heights, got", book.Title)
 	}
 }
 
-func TestFetchBookByTitle(t *testing.T) {
-	testCatalogueBuffer := newTestCatalogue()
-	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
-	book := cat.FetchBookByTitle("Tess of the d'Urbervilles")
+func TestFetchBookByTitleError(t *testing.T) {
+	cat := newTestCatalogue()
+	_, err := cat.FetchBookByID(6)
+	if err != errBookNotFound {
+		t.Error("Expected errBookNotFound to be returned")
+	}
+}
 
+func TestFetchBookByID(t *testing.T) {
+	cat := newTestCatalogue()
+	book, _ := cat.FetchBookByTitle("Tess of the d'Urbervilles")
 	if book.ID != 2 {
 		t.Error("Expected 1, got", book.ID)
 	}
 }
 
+func TestFetchBookByIDError(t *testing.T) {
+	cat := newTestCatalogue()
+	_, err := cat.FetchBookByTitle("Cardenio")
+	if err != errBookNotFound {
+		t.Error("Expected errBookNotFound to be returned")
+	}
+}
+
 func TestAddToCatalogue(t *testing.T) {
-	testCatalogueBuffer := newTestCatalogue()
+	testCatalogueBuffer := newTestCatalogueBuffer()
 	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
 	bk := book{
 		Title:           "Dune",
@@ -56,10 +69,10 @@ func TestAddToCatalogue(t *testing.T) {
 }
 
 func TestUpdateBookInCatalogue(t *testing.T) {
-	testCatalogueBuffer := newTestCatalogue()
+	testCatalogueBuffer := newTestCatalogueBuffer()
 	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
 
-	book := cat.FetchBookByTitle("Wuthering Heights")
+	book, _ := cat.FetchBookByTitle("Wuthering Heights")
 	book.Title = "Heathcliff!"
 	book.Author = "Cliff Richard"
 	cat.UpdateBook(book)
@@ -71,7 +84,7 @@ func TestUpdateBookInCatalogue(t *testing.T) {
 }
 
 func TestDeleteBookInCatalogue(t *testing.T) {
-	testCatalogueBuffer := newTestCatalogue()
+	testCatalogueBuffer := newTestCatalogueBuffer()
 	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
 	cat.DeleteBookWithID(1)
 
@@ -82,7 +95,12 @@ func TestDeleteBookInCatalogue(t *testing.T) {
 	}
 }
 
-func newTestCatalogue() *bytes.Buffer {
+func newTestCatalogueBuffer() *bytes.Buffer {
 	catalogueString := `[{"ID":1,"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"ID":2,"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]}]`
 	return bytes.NewBufferString(catalogueString)
+}
+
+func newTestCatalogue() fileCatalogue {
+	catBuffer := newTestCatalogueBuffer()
+	return newJSONCatalogue(catBuffer, catBuffer)
 }

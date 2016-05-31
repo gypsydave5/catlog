@@ -33,13 +33,13 @@ func (cat *fileCatalogue) FetchBookByID(id int) (book, error) {
 	return book{}, errBookNotFound
 }
 
-func (cat *fileCatalogue) FetchBookByTitle(title string) book {
+func (cat *fileCatalogue) FetchBookByTitle(title string) (book, error) {
 	for _, b := range cat.library {
 		if b.Title == title {
-			return b
+			return b, nil
 		}
 	}
-	return book{}
+	return book{}, errBookNotFound
 }
 
 func (cat *fileCatalogue) UpdateBook(ub book) {
