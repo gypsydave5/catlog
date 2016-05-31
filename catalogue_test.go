@@ -84,6 +84,21 @@ func TestUpdateBookInCatalogue(t *testing.T) {
 	if updatedBook.Title != "Heathcliff!" {
 		t.Error("Expected Heathcliff!, but got", updatedBook.Title)
 	}
+
+	fileLib, _ := newLibraryFromJSON(cat.catalogueReader)
+	bookTitleFromFile := fileLib[0].Title
+
+	if bookTitleFromFile != "Heathcliff!" {
+		t.Error("Expected Heathcliff!, but got", bookTitleFromFile)
+	}
+}
+
+func TestUpdateBookInCatalogueError(t *testing.T) {
+	cat := newTestCatalogue()
+	err := cat.UpdateBook(dune)
+	if err != errBookNotFound {
+		t.Error("Expected an errBookNotFound")
+	}
 }
 
 func TestDeleteBookInCatalogue(t *testing.T) {

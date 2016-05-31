@@ -42,12 +42,15 @@ func (cat *fileCatalogue) FetchBookByTitle(title string) (book, error) {
 	return book{}, errBookNotFound
 }
 
-func (cat *fileCatalogue) UpdateBook(ub book) {
+func (cat *fileCatalogue) UpdateBook(ub book) error {
 	for i, b := range cat.library {
 		if b.ID == ub.ID {
 			cat.library[i] = ub
+			cat.library.WriteJSON(cat.catalogueWriter)
+			return nil
 		}
 	}
+	return errBookNotFound
 }
 
 func (cat *fileCatalogue) CreateBook(b book) {
