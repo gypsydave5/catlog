@@ -9,14 +9,22 @@ var (
 	errBookNotFound = errors.New("Book not found in catalogue")
 )
 
-type catalogue struct {
+type catalogue interface {
+	FetchBookByID(int) (book, error)
+	FetchBookByTitle(string) book
+	UpdateBook(book)
+	CreateBook(book)
+	DeleteBookWithID(int)
+}
+
+type fileCatalogue struct {
 	library         library
 	catalogueReader io.Reader
 	catalogueWriter io.Writer
 	nextID          int
 }
 
-func (cat *catalogue) FetchBookByID(id int) (book, error) {
+func (cat *fileCatalogue) FetchBookByID(id int) (book, error) {
 	for _, b := range cat.library {
 		if b.ID == id {
 			return b, nil
@@ -25,7 +33,7 @@ func (cat *catalogue) FetchBookByID(id int) (book, error) {
 	return book{}, errBookNotFound
 }
 
-func (cat *catalogue) FetchBookByTitle(title string) book {
+func (cat *fileCatalogue) FetchBookByTitle(title string) book {
 	for _, b := range cat.library {
 		if b.Title == title {
 			return b
@@ -34,7 +42,7 @@ func (cat *catalogue) FetchBookByTitle(title string) book {
 	return book{}
 }
 
-func (cat *catalogue) UpdateBook(ub book) {
+func (cat *fileCatalogue) UpdateBook(ub book) {
 	for i, b := range cat.library {
 		if b.ID == ub.ID {
 			cat.library[i] = ub
@@ -42,13 +50,13 @@ func (cat *catalogue) UpdateBook(ub book) {
 	}
 }
 
-func (cat *catalogue) CreateBook(b book) {
+func (cat *fileCatalogue) CreateBook(b book) {
 	b.ID = cat.nextID
 	cat.nextID++
 	cat.library = append(cat.library, b)
 }
 
-func (cat *catalogue) DeleteBookWithID(id int) {
+func (cat *fileCatalogue) DeleteBookWithID(id int) {
 	for i, b := range cat.library {
 		if b.ID == id {
 			cat.library[i] = book{}
@@ -56,10 +64,10 @@ func (cat *catalogue) DeleteBookWithID(id int) {
 	}
 }
 
-func newJSONCatalogue(catReader io.Reader, catWriter io.Writer) catalogue {
+func newJSONCatalogue(catReader io.Reader, catWriter io.Writer) fileCatalogue {
 	lib, _ := newLibraryFromJSON(catReader)
 	nextID := lib[len(lib)-1].ID + 1
-	return catalogue{
+	return fileCatalogue{
 		lib,
 		catReader,
 		catWriter,
