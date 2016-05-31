@@ -43,10 +43,13 @@ func newLibraryFromCSV(r io.Reader) library {
 
 func newLibraryFromJSON(r io.Reader) (library, error) {
 	var lib library
-	b, _ := ioutil.ReadAll(r)
-	err := json.Unmarshal(b, &lib)
+	b, err := ioutil.ReadAll(r)
 	if err != nil {
-		err := fmt.Errorf("Error reading catalogue: %v", err)
+		return library{}, err
+	}
+	err = json.Unmarshal(b, &lib)
+	if err != nil {
+		err = fmt.Errorf("Error reading catalogue: %v", err)
 		return library{}, err
 	}
 	return lib, nil

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"os"
 	"testing"
 )
 
@@ -14,6 +15,7 @@ var (
 		Edition:         1,
 		Keywords:        []string{"Desert", "Science Fiction"},
 	}
+	catalogueString = `[{"ID":1,"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"ID":2,"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]}]`
 )
 
 func TestFileCatalogue(t *testing.T) {
@@ -50,7 +52,7 @@ func TestFetchBookByIDError(t *testing.T) {
 
 func TestAddToCatalogue(t *testing.T) {
 	testCatalogueBuffer := newTestCatalogueBuffer()
-	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
+	cat, err := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer, func() {})
 
 	cat.CreateBook(dune)
 
@@ -73,7 +75,7 @@ func TestAddToCatalogue(t *testing.T) {
 
 func TestUpdateBookInCatalogue(t *testing.T) {
 	testCatalogueBuffer := newTestCatalogueBuffer()
-	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
+	cat, _ := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer, func() {})
 
 	book, _ := cat.FetchBookByTitle("Wuthering Heights")
 	book.Title = "Heathcliff!"
@@ -103,7 +105,7 @@ func TestUpdateBookInCatalogueError(t *testing.T) {
 
 func TestDeleteBookInCatalogue(t *testing.T) {
 	testCatalogueBuffer := newTestCatalogueBuffer()
-	cat := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer)
+	cat, _ := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer, func() {})
 	cat.DeleteBookWithID(1)
 
 	_, err := cat.FetchBookByID(1)
@@ -111,14 +113,66 @@ func TestDeleteBookInCatalogue(t *testing.T) {
 	if err != errBookNotFound {
 		t.Error("Expected book not found error, but got:", err)
 	}
+
+	fileLib, err := newLibraryFromJSON(cat.catalogueReader)
+	if err != nil {
+		t.Error("Unexpected error on book deletion", err)
+	}
+	bookTitleFromFile := fileLib[0].Title
+	if bookTitleFromFile != "Tess of the d'Urbervilles" {
+		t.Error("Expected Tess of the d'Urbervilles, but got", bookTitleFromFile)
+	}
+}
+
+func TestCatalogueFileGetsWrittenTo(t *testing.T) {
+	catalogueFile := setUpTestCatalogueFile()
+	cat, _ := newJSONCatalogue(catalogueFile, catalogueFile, func() {
+		catalogueFile.Truncate(0)
+		catalogueFile.Seek(0, 0)
+	})
+	cat.DeleteBookWithID(1)
+
+	_, err := cat.FetchBookByID(1)
+	if err != errBookNotFound {
+		t.Error("Expected book not found error, but got:", err)
+	}
+
+	testCatalogueFile, err := os.Open("testCatalogue.json")
+	if err != nil {
+		t.Error("Error opening testCatalogue.json:", err)
+	}
+	fileLib, err := newLibraryFromJSON(testCatalogueFile)
+	if err != nil {
+		t.Error("Error parsing testCatalogue.json", err)
+	}
+
+	if len(fileLib) != 1 {
+		t.Errorf("Expected only one book record, but got %d", len(fileLib))
+	}
+	bookTitleFromFile := fileLib[0].Title
+	if bookTitleFromFile != "Tess of the d'Urbervilles" {
+		t.Error("Expected Tess of the d'Urbervilles, but got", bookTitleFromFile)
+	}
+	bookIDFromFile := fileLib[0].ID
+	if bookIDFromFile != 2 {
+		t.Errorf("Expected 2, but got %d", bookIDFromFile)
+	}
 }
 
 func newTestCatalogueBuffer() *bytes.Buffer {
-	catalogueString := `[{"ID":1,"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"ID":2,"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]}]`
 	return bytes.NewBufferString(catalogueString)
 }
 
 func newTestCatalogue() fileCatalogue {
 	catBuffer := newTestCatalogueBuffer()
-	return newJSONCatalogue(catBuffer, catBuffer)
+	cat, _ := newJSONCatalogue(catBuffer, catBuffer, func() {})
+	return cat
+}
+
+func setUpTestCatalogueFile() *os.File {
+	catalogueFile, _ := os.Create("testCatalogue.json")
+	catalogueFile.WriteString(catalogueString)
+	catalogueFile.Close()
+	catalogueFile, _ = os.OpenFile("testCatalogue.json", os.O_RDWR, 0666)
+	return catalogueFile
 }

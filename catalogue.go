@@ -22,6 +22,7 @@ type fileCatalogue struct {
 	catalogueReader io.Reader
 	catalogueWriter io.Writer
 	nextID          int
+	writeCallback   func()
 }
 
 func (cat *fileCatalogue) FetchBookByID(id int) (book, error) {
@@ -63,18 +64,24 @@ func (cat *fileCatalogue) CreateBook(b book) {
 func (cat *fileCatalogue) DeleteBookWithID(id int) {
 	for i, b := range cat.library {
 		if b.ID == id {
-			cat.library[i] = book{}
+			cat.library = append(cat.library[:i], cat.library[i+1:]...)
+			cat.writeCallback()
+			cat.library.WriteJSON(cat.catalogueWriter)
 		}
 	}
 }
 
-func newJSONCatalogue(catReader io.Reader, catWriter io.Writer) fileCatalogue {
-	lib, _ := newLibraryFromJSON(catReader)
+func newJSONCatalogue(catReader io.Reader, catWriter io.Writer, cb func()) (fileCatalogue, error) {
+	lib, err := newLibraryFromJSON(catReader)
+	if err != nil {
+		return fileCatalogue{}, err
+	}
 	nextID := lib[len(lib)-1].ID + 1
 	return fileCatalogue{
-		lib,
-		catReader,
-		catWriter,
-		nextID,
-	}
+		library:         lib,
+		catalogueReader: catReader,
+		catalogueWriter: catWriter,
+		nextID:          nextID,
+		writeCallback:   cb,
+	}, nil
 }
