@@ -42,6 +42,22 @@ func TestAddToCatalogue(t *testing.T) {
 	TearDownFileCatalogue(t)
 }
 
+func TestUpdateBookInCatalogue(t *testing.T) {
+	SetUpFileCatalogue(t)
+	cat := newJSONCatalogue("test_catalogue.json")
+	book := cat.FetchBookByTitle("Wuthering Heights")
+	book.Title = "Heathcliff!"
+	book.Author = "Cliff Richard"
+	cat.UpdateBook(book)
+	updatedBook := cat.FetchBookByID(1)
+
+	if updatedBook.Title != "Heathcliff!" {
+		t.Error("Expected Heathcliff!, but got", updatedBook.Title)
+	}
+
+	TearDownFileCatalogue(t)
+}
+
 func SetUpFileCatalogue(t *testing.T) {
 	file, err := os.Create("test_catalogue.json")
 	if err != nil {

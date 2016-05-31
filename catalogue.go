@@ -26,6 +26,14 @@ func (cat *catalogue) FetchBookByTitle(title string) book {
 	return book{}
 }
 
+func (cat *catalogue) UpdateBook(ub book) {
+	for i, b := range cat.library {
+		if b.ID == ub.ID {
+			cat.library[i] = ub
+		}
+	}
+}
+
 func (cat *catalogue) CreateBook(b book) {
 	b.ID = cat.nextID
 	cat.nextID++
