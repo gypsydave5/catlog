@@ -1,6 +1,13 @@
 package main
 
-import "os"
+import (
+	"errors"
+	"os"
+)
+
+var (
+	errBookNotFound = errors.New("Book not found in catalogue")
+)
 
 type catalogue struct {
 	library  library
@@ -8,13 +15,13 @@ type catalogue struct {
 	nextID   int
 }
 
-func (cat *catalogue) FetchBookByID(id int) book {
+func (cat *catalogue) FetchBookByID(id int) (book, error) {
 	for _, b := range cat.library {
 		if b.ID == id {
-			return b
+			return b, nil
 		}
 	}
-	return book{}
+	return book{}, errBookNotFound
 }
 
 func (cat *catalogue) FetchBookByTitle(title string) book {
@@ -38,6 +45,14 @@ func (cat *catalogue) CreateBook(b book) {
 	b.ID = cat.nextID
 	cat.nextID++
 	cat.library = append(cat.library, b)
+}
+
+func (cat *catalogue) DeleteBookWithID(id int) {
+	for i, b := range cat.library {
+		if b.ID == id {
+			cat.library[i] = book{}
+		}
+	}
 }
 
 func newJSONCatalogue(filename string) catalogue {
