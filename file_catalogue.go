@@ -17,12 +17,15 @@ type catalogue interface {
 	DeleteBookWithID(int)
 }
 
+type file interface {
+	io.ReadWriteSeeker
+	Truncate(int64) error
+}
+
 type fileCatalogue struct {
-	library         library
-	catalogueReader io.Reader
-	catalogueWriter io.Writer
-	nextID          int
-	writeCallback   func()
+	library library
+	file    file
+	nextID  int
 }
 
 func (cat *fileCatalogue) FetchBookByID(id int) (book, error) {
@@ -47,7 +50,8 @@ func (cat *fileCatalogue) UpdateBook(ub book) error {
 	for i, b := range cat.library {
 		if b.ID == ub.ID {
 			cat.library[i] = ub
-			cat.library.WriteJSON(cat.catalogueWriter)
+			wipeFile(cat.file)
+			cat.library.WriteJSON(cat.file)
 			return nil
 		}
 	}
@@ -58,30 +62,39 @@ func (cat *fileCatalogue) CreateBook(b book) {
 	b.ID = cat.nextID
 	cat.nextID++
 	cat.library = append(cat.library, b)
-	cat.library.WriteJSON(cat.catalogueWriter)
+	wipeFile(cat.file)
+	cat.library.WriteJSON(cat.file)
 }
 
 func (cat *fileCatalogue) DeleteBookWithID(id int) {
 	for i, b := range cat.library {
 		if b.ID == id {
 			cat.library = append(cat.library[:i], cat.library[i+1:]...)
-			cat.writeCallback()
-			cat.library.WriteJSON(cat.catalogueWriter)
+			wipeFile(cat.file)
+			cat.library.WriteJSON(cat.file)
 		}
 	}
 }
 
-func newJSONCatalogue(catReader io.Reader, catWriter io.Writer, cb func()) (fileCatalogue, error) {
-	lib, err := newLibraryFromJSON(catReader)
+func newJSONCatalogue(f file) (fileCatalogue, error) {
+	lib, err := newLibraryFromJSON(f)
 	if err != nil {
 		return fileCatalogue{}, err
 	}
 	nextID := lib[len(lib)-1].ID + 1
 	return fileCatalogue{
-		library:         lib,
-		catalogueReader: catReader,
-		catalogueWriter: catWriter,
-		nextID:          nextID,
-		writeCallback:   cb,
+		library: lib,
+		file:    f,
+		nextID:  nextID,
 	}, nil
+}
+
+func wipeFile(f file) error {
+	f.Seek(0, 0)
+	err := f.Truncate(0)
+	if err != nil {
+		return err
+	}
+
+	return err
 }

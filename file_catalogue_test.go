@@ -18,6 +18,15 @@ var (
 	catalogueString = `[{"ID":1,"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"ID":2,"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]}]`
 )
 
+type mockFiletype struct {
+	buffer *bytes.Buffer
+}
+
+func (mft mockFiletype) Read(b []byte) (int, error)         { return mft.buffer.Read(b) }
+func (mft mockFiletype) Write(b []byte) (int, error)        { return mft.buffer.Write(b) }
+func (mft mockFiletype) Truncate(i int64) error             { return nil }
+func (mft mockFiletype) Seek(i int64, j int) (int64, error) { return 0, nil }
+
 func TestFileCatalogue(t *testing.T) {
 	cat := newTestCatalogue()
 	book, _ := cat.FetchBookByID(1)
@@ -52,19 +61,10 @@ func TestFetchBookByIDError(t *testing.T) {
 
 func TestAddToCatalogue(t *testing.T) {
 	testCatalogueBuffer := newTestCatalogueBuffer()
-	cat, err := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer, func() {})
+	mockFile := newMockFileType(testCatalogueBuffer)
+	cat, _ := newJSONCatalogue(mockFile)
 
 	cat.CreateBook(dune)
-
-	book, err := cat.FetchBookByID(3)
-
-	if err != nil {
-		t.Error("Error reading 'Dune' from catalogue")
-	}
-
-	if book.Title != "Dune" {
-		t.Error("Expected the title of 'Dune' to be 'Dune', but instead it was", dune.Title)
-	}
 
 	expectedBuffer := `[{"ID":1,"Title":"Wuthering Heights","Author":"Emily Bronte","PublicationDate":1847,"Publisher":"Thomas Cautley Newbury","Edition":1,"Keywords":["Kate Bush"]},{"ID":2,"Title":"Tess of the d'Urbervilles","Author":"Thomas Hardy","PublicationDate":1892,"Publisher":"James R. Osgood","Edition":1,"Keywords":["Wessex","19th Century"]},{"ID":3,"Title":"Dune","Author":"Frank Herbert","PublicationDate":1965,"Publisher":"Chilton Books","Edition":1,"Keywords":["Desert","Science Fiction"]}]`
 
@@ -75,21 +75,16 @@ func TestAddToCatalogue(t *testing.T) {
 
 func TestUpdateBookInCatalogue(t *testing.T) {
 	testCatalogueBuffer := newTestCatalogueBuffer()
-	cat, _ := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer, func() {})
-
+	mockFile := newMockFileType(testCatalogueBuffer)
+	cat, _ := newJSONCatalogue(mockFile)
 	book, _ := cat.FetchBookByTitle("Wuthering Heights")
 	book.Title = "Heathcliff!"
 	book.Author = "Cliff Richard"
+
 	cat.UpdateBook(book)
-	updatedBook, _ := cat.FetchBookByID(1)
 
-	if updatedBook.Title != "Heathcliff!" {
-		t.Error("Expected Heathcliff!, but got", updatedBook.Title)
-	}
-
-	fileLib, _ := newLibraryFromJSON(cat.catalogueReader)
+	fileLib, _ := newLibraryFromJSON(cat.file)
 	bookTitleFromFile := fileLib[0].Title
-
 	if bookTitleFromFile != "Heathcliff!" {
 		t.Error("Expected Heathcliff!, but got", bookTitleFromFile)
 	}
@@ -97,7 +92,9 @@ func TestUpdateBookInCatalogue(t *testing.T) {
 
 func TestUpdateBookInCatalogueError(t *testing.T) {
 	cat := newTestCatalogue()
+
 	err := cat.UpdateBook(dune)
+
 	if err != errBookNotFound {
 		t.Error("Expected an errBookNotFound")
 	}
@@ -105,19 +102,12 @@ func TestUpdateBookInCatalogueError(t *testing.T) {
 
 func TestDeleteBookInCatalogue(t *testing.T) {
 	testCatalogueBuffer := newTestCatalogueBuffer()
-	cat, _ := newJSONCatalogue(testCatalogueBuffer, testCatalogueBuffer, func() {})
+	mockFile := newMockFileType(testCatalogueBuffer)
+	cat, _ := newJSONCatalogue(mockFile)
+
 	cat.DeleteBookWithID(1)
 
-	_, err := cat.FetchBookByID(1)
-
-	if err != errBookNotFound {
-		t.Error("Expected book not found error, but got:", err)
-	}
-
-	fileLib, err := newLibraryFromJSON(cat.catalogueReader)
-	if err != nil {
-		t.Error("Unexpected error on book deletion", err)
-	}
+	fileLib, _ := newLibraryFromJSON(cat.file)
 	bookTitleFromFile := fileLib[0].Title
 	if bookTitleFromFile != "Tess of the d'Urbervilles" {
 		t.Error("Expected Tess of the d'Urbervilles, but got", bookTitleFromFile)
@@ -126,10 +116,7 @@ func TestDeleteBookInCatalogue(t *testing.T) {
 
 func TestCatalogueFileGetsWrittenTo(t *testing.T) {
 	catalogueFile := setUpTestCatalogueFile()
-	cat, _ := newJSONCatalogue(catalogueFile, catalogueFile, func() {
-		catalogueFile.Truncate(0)
-		catalogueFile.Seek(0, 0)
-	})
+	cat, _ := newJSONCatalogue(catalogueFile)
 	cat.DeleteBookWithID(1)
 
 	_, err := cat.FetchBookByID(1)
@@ -137,22 +124,9 @@ func TestCatalogueFileGetsWrittenTo(t *testing.T) {
 		t.Error("Expected book not found error, but got:", err)
 	}
 
-	testCatalogueFile, err := os.Open("testCatalogue.json")
-	if err != nil {
-		t.Error("Error opening testCatalogue.json:", err)
-	}
-	fileLib, err := newLibraryFromJSON(testCatalogueFile)
-	if err != nil {
-		t.Error("Error parsing testCatalogue.json", err)
-	}
+	testCatalogueFile, _ := os.Open("testCatalogue.json")
+	fileLib, _ := newLibraryFromJSON(testCatalogueFile)
 
-	if len(fileLib) != 1 {
-		t.Errorf("Expected only one book record, but got %d", len(fileLib))
-	}
-	bookTitleFromFile := fileLib[0].Title
-	if bookTitleFromFile != "Tess of the d'Urbervilles" {
-		t.Error("Expected Tess of the d'Urbervilles, but got", bookTitleFromFile)
-	}
 	bookIDFromFile := fileLib[0].ID
 	if bookIDFromFile != 2 {
 		t.Errorf("Expected 2, but got %d", bookIDFromFile)
@@ -164,13 +138,20 @@ func newTestCatalogueBuffer() *bytes.Buffer {
 }
 
 func newTestCatalogue() fileCatalogue {
+	var mft file
 	catBuffer := newTestCatalogueBuffer()
-	cat, _ := newJSONCatalogue(catBuffer, catBuffer, func() {})
+	mft = newMockFileType(catBuffer)
+	cat, _ := newJSONCatalogue(mft)
 	return cat
 }
 
+func newMockFileType(b *bytes.Buffer) file {
+	return mockFiletype{buffer: b}
+}
+
 func setUpTestCatalogueFile() *os.File {
-	catalogueFile, _ := os.Create("testCatalogue.json")
+	fileName := "testCatalogue.json"
+	catalogueFile, _ := os.Create(fileName)
 	catalogueFile.WriteString(catalogueString)
 	catalogueFile.Close()
 	catalogueFile, _ = os.OpenFile("testCatalogue.json", os.O_RDWR, 0666)
