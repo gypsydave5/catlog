@@ -58,6 +58,7 @@ func (cat *fileCatalogue) CreateBook(b book) {
 	b.ID = cat.nextID
 	cat.nextID++
 	cat.library = append(cat.library, b)
+  cat.writeCallback()
 	cat.library.WriteJSON(cat.catalogueWriter)
 }
 
